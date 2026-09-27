@@ -1,25 +1,49 @@
 {
+  "id": "/wardogs-fcu-lite/",
   "name": "WARDOGS FCU-LITE",
   "short_name": "FCU-LITE",
-  "description": "Tactical Ballistics Computer & Rangefinder for WARDOGS",
-  "start_url": "./index.html",
-  "scope": "./",
+  "description": "Ultra-lightweight tactical ballistics computer and coordinate rangefinder.",
+  "start_url": "/wardogs-fcu-lite/index.html",
+  "scope": "/wardogs-fcu-lite/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait",
+  "categories": ["utilities", "tools"],
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/wardogs-fcu-lite/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/wardogs-fcu-lite/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/wardogs-fcu-lite/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/wardogs-fcu-lite/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tactical Ballistics HUD"
+    },
+    {
+      "src": "/wardogs-fcu-lite/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tactical Ballistics HUD Wide"
     }
   ]
 }
