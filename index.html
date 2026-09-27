@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>WARDOGS FCU Tactical Terminal</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #080c12;
+      --card-border: #141f2d;
+      --amber: #ffb100;
+      --amber-dim: #7a5500;
+      --amber-glow: 0 0 16px rgba(255, 177, 0, 0.45);
+      --green: #2ce072;
+      --green-dim: #135c31;
+      --green-glow: 0 0 14px rgba(44, 224, 114, 0.4);
+      --cyan: #00e1ff;
+      --cyan-dim: #0a4f59;
+      --red: #ff3b3b;
+      --text: #d9e6f2;
+      --text-muted: #5e7488;
+      --font-mono: ui-monospace, 'SF Mono', Consolas, 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: max(4px, env(safe-area-inset-top));
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 4px 8px 6px 8px;
+      gap: 5px;
+      position: relative;
+    }
+
+    /* Header Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 2px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      color: #8da4bb;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: var(--green-glow);
+    }
+
+    .btn-toggle {
+      background: #0d1520;
+      border: 1px solid var(--card-border);
+      color: #9cb3c8;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-toggle.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      box-shadow: 0 0 8px rgba(255, 177, 0, 0.25);
+    }
+
+    .btn-radar-modal {
+      background: #0f2018;
+      border: 1px solid var(--green);
+      color: var(--green);
+      box-shadow: var(--green-glow);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-radar-modal:active {
+      background: var(--green);
+      color: #000;
+    }
+
+    .master-hud {
+      background: var(--card-bg);
+      border: 1px solid #18283a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: 1.25fr 0.85fr;
+      gap: 6px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9);
+      flex-shrink: 0;
+    }
+
+    .hud-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hud-label {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-main-val {
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .hud-subtext {
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .amber { color: var(--amber); text-shadow: var(--amber-glow); }
+    .green { color: var(--green); text-shadow: var(--green-glow); }
+    .cyan  { color: var(--cyan); }
+    .muted { color: var(--text-muted); }
+
+    /* Telemetry Row */
+    .telemetry-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .telemetry-cell {
+      background: #060a0f;
+      border: 1px solid var(--card-border);
+      padding: 3px 4px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .t-lbl {
+      font-size: 7.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+    }
+
+    .t-val {
+      font-size: 11px;
+      font-weight: 800;
+      color: #d1e2f2;
+      display: block;
+    }
+
+    /* Weapon Selector Tabs */
+    .weapon-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      background: #080d14;
+      border: 1px solid var(--card-border);
+      color: #7b94aa;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 5px 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: #112030;
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .coords-block {
+      background: #05080c;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 5px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .coord-row-title {
+      font-size: 8px;
+      font-weight: 800;
+      color: #637e96;
+      letter-spacing: 0.08em;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .coord-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.7fr;
+      gap: 5px;
+    }
+
+    .chip {
+      background: #090e15;
+      border: 1px solid #14202d;
+      border-radius: 4px;
+      padding: 4px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .chip.active {
+      background: #121c28;
+      border-color: var(--amber);
+      box-shadow: 0 0 8px rgba(255, 177, 0, 0.3);
+    }
+
+    .chip.friendly-tag { border-left: 3px solid var(--green); }
+    .chip.target-tag   { border-left: 3px solid var(--amber); }
+
+    .chip-lbl {
+      font-size: 7.5px;
+      font-weight: 800;
+      color: #5c7083;
+    }
+
+    .chip-num {
+      font-size: 15px;
+      font-weight: 900;
+      color: #f0f6fc;
+      margin-top: 1px;
+    }
+
+    /* Nudge strip */
+    .nudge-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .nudge-btn {
+      background: #0a111a;
+      border: 1px solid #182838;
+      color: #9cb5cf;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .nudge-btn:active {
+      background: var(--amber);
+      color: #000;
+    }
+
+    /* Numpad */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      flex: 1;
+      max-height: 230px;
+    }
+
+    .key {
+      background: #0b1118;
+      border: 1px solid #162434;
+      color: #f2f7fc;
+      font-family: inherit;
+      font-size: 21px;
+      font-weight: 800;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .key:active {
+      background: #1e3145;
+      transform: scale(0.97);
+    }
+
+    .key.action {
+      background: #121c28;
+      color: #8ea9c4;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .key.danger {
+      background: #1e1014;
+      border-color: #381920;
+      color: #ff6e6e;
+    }
+
+    .key.backspace {
+      background: #231908;
+      border-color: #4a340b;
+      color: var(--amber);
+      font-size: 20px;
+    }
+
+    .key.accent {
+      background: #0f271a;
+      border-color: #1a4f32;
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .key.accent:active {
+      background: var(--green);
+      color: #000;
+    }
+
+    /* Modal Radar Overlay */
+    .radar-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 18px 14px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .radar-modal.open {
+      display: flex;
+    }
+
+    .radar-header {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .radar-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .radar-close-btn {
+      background: #1f1114;
+      border: 1px solid var(--red);
+      color: var(--red);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .radar-canvas-wrap {
+      width: 100%;
+      max-width: 380px;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 50%;
+      background: #020704;
+      border: 2px solid #144023;
+      box-shadow: 0 0 25px rgba(44, 224, 114, 0.15);
+      cursor: crosshair;
+    }
+
+    .radar-footer {
+      width: 100%;
+      max-width: 440px;
+      background: #090e16;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .radar-hint {
+      font-size: 9px;
+      color: #6a8296;
+      text-align: center;
+      margin-top: -6px;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-35px);
+      background: #142232;
+      border: 1px solid var(--amber);
+      color: #ffe099;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 2000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="top-bar">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>WARDOGS FCU</span>
+      </div>
+
+      <div style="display:flex; gap:5px;">
+        <button id="openRadarBtn" class="btn-radar-modal">⌖ RADAR</button>
+        <button id="wakeBtn" class="btn-toggle">AWAKE: OFF</button>
+        <button id="unitBtn" class="btn-toggle active">GRID: 100M</button>
+      </div>
+    </header>
+
+    <!-- Master HUD -->
+    <section class="master-hud">
+      <div class="hud-block">
+        <div class="hud-label">
+          <span>SIGHT RNG</span>
+          <span id="unitTag" class="cyan">METERS</span>
+        </div>
+        <div class="hud-main-val amber" id="sightDisplay">0</div>
+        <div class="hud-subtext">
+          <span class="muted" id="elevBias">FLAT LOS</span>
+          <span class="amber" id="altOutput">0.0 mils</span>
+        </div>
+      </div>
+
+      <div class="hud-block" style="border-left: 1px solid #14202d; padding-left: 8px;">
+        <div class="hud-label">
+          <span>AZIMUTH</span>
+          <span id="quadrantTag" class="green">N</span>
+        </div>
+        <div class="hud-main-val green" id="azimuthDisplay">000°</div>
+        <div class="hud-subtext">
+          <span class="muted">HANG TIME:</span>
+          <span class="cyan" id="tofDisplay">0.0s</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Telemetry Row -->
+    <div class="telemetry-strip">
+      <div class="telemetry-cell">
+        <span class="t-lbl">2D GROUND</span>
+        <span class="t-val" id="groundDistDisplay">0m</span>
+      </div>
+      <div class="telemetry-cell">
+        <span class="t-lbl">3D SLANT</span>
+        <span class="t-val" id="slantDistDisplay">0m</span>
+      </div>
+      <div class="telemetry-cell">
+        <span class="t-lbl">ΔZ ELEV</span>
+        <span class="t-val" id="deltaZDisplay">+0m</span>
+      </div>
+      <div class="telemetry-cell">
+        <span class="t-lbl">MAP SQUARES</span>
+        <span class="t-val" id="gridCountDisplay">0.0 sq</span>
+      </div>
+    </div>
+
+    <!-- Ordnance Selector -->
+    <div class="weapon-tabs">
+      <button class="tab-btn active" data-ord="mbt">DIRECT (APFSDS)</button>
+      <button class="tab-btn" data-ord="arty">SPH-2 (HOWITZER)</button>
+      <button class="tab-btn" data-ord="mortar">L81 (MORTAR)</button>
+    </div>
+
+    <!-- Coordinate Inputs -->
+    <section class="coords-block">
+      <div class="coord-row-title">
+        <span>FRIENDLY (HULL ORIGIN)</span>
+        <span style="color:var(--green)">SAVED TO CACHE</span>
+      </div>
+      <div class="coord-pair">
+        <div class="chip friendly-tag active" data-id="fX">
+          <span class="chip-lbl">X1 (EAST)</span>
+          <span class="chip-num" id="val_fX">12.0</span>
+        </div>
+        <div class="chip friendly-tag" data-id="fY">
+          <span class="chip-lbl">Y1 (NORTH)</span>
+          <span class="chip-num" id="val_fY">18.0</span>
+        </div>
+        <div class="chip friendly-tag" data-id="fZ">
+          <span class="chip-lbl">Z1 (ELEV)</span>
+          <span class="chip-num" id="val_fZ">120</span>
+        </div>
+      </div>
+
+      <div class="coord-row-title" style="margin-top:2px;">
+        <span>ENEMY TARGET</span>
+        <span class="amber" id="deltaSummary">ΔX: 0.0 | ΔY: 0.0</span>
+      </div>
+      <div class="coord-pair">
+        <div class="chip target-tag" data-id="tX">
+          <span class="chip-lbl">X2 (EAST)</span>
+          <span class="chip-num" id="val_tX">16.5</span>
+        </div>
+        <div class="chip target-tag" data-id="tY">
+          <span class="chip-lbl">Y2 (NORTH)</span>
+          <span class="chip-num" id="val_tY">24.0</span>
+        </div>
+        <div class="chip target-tag" data-id="tZ">
+          <span class="chip-lbl">Z2 (ELEV)</span>
+          <span class="chip-num" id="val_tZ">180</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Walking Fire Nudges -->
+    <div class="nudge-strip">
+      <button class="nudge-btn" data-n="-1.0">-1.0</button>
+      <button class="nudge-btn" data-n="-0.5">-0.5</button>
+      <button class="nudge-btn" data-n="+0.5">+0.5</button>
+      <button class="nudge-btn" data-n="+1.0">+1.0</button>
+    </div>
+
+    <div class="numpad">
+      <button class="key" data-k="7">7</button>
+      <button class="key" data-k="8">8</button>
+      <button class="key" data-k="9">9</button>
+      <button class="key action danger" data-k="CLR">CLR</button>
+
+      <button class="key" data-k="4">4</button>
+      <button class="key" data-k="5">5</button>
+      <button class="key" data-k="6">6</button>
+      <button class="key action" data-k="NEG">±</button>
+
+      <button class="key" data-k="1">1</button>
+      <button class="key" data-k="2">2</button>
+      <button class="key" data-k="3">3</button>
+      <button class="key action" id="swapBtn">SWAP ⇄</button>
+
+      <button class="key backspace" data-k="BKSP">⌫</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key" data-k=".">.</button>
+      <button class="key action accent" data-k="NEXT">NEXT ▸</button>
+    </div>
+  </div>
+
+  <div class="radar-modal" id="radarModal">
+    <div class="radar-header">
+      <div class="radar-title">
+        <span class="status-dot"></span>
+        <span>TACTICAL VECTOR RADAR</span>
+      </div>
+      <button class="radar-close-btn" id="closeRadarBtn">✕ CLOSE</button>
+    </div>
+
+    <div class="radar-canvas-wrap">
+      <canvas id="radarCanvas" width="380" height="380"></canvas>
+    </div>
+
+    <div class="radar-hint">TAP ANYWHERE ON SCOPE TO RE-PLOT TARGET COORDINATES</div>
+
+    <div class="radar-footer">
+      <div>
+        <span style="color:var(--text-muted); font-size:9px; display:block;">TARGET RANGE</span>
+        <span style="color:var(--amber); font-weight:800; font-size:13px;" id="modalRng">0 m</span>
+      </div>
+      <div>
+        <span style="color:var(--text-muted); font-size:9px; display:block;">TRUE BEARING</span>
+        <span style="color:var(--green); font-weight:800; font-size:13px;" id="modalAzi">000°</span>
+      </div>
+      <div>
+        <span style="color:var(--text-muted); font-size:9px; display:block;">RING SPACING</span>
+        <span style="color:var(--cyan); font-weight:800; font-size:13px;" id="modalRingScale">250m</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">SAVED</div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const state = {
+        isGridMode: true, // true: 1.0 = 100m, false: 1.0 = 1m
+        activeField: 'tX',
+        ord: 'mbt',
+        wakeSentinel: null,
+        coords: {
+          fX: '12.0',
+          fY: '18.0',
+          fZ: '120',
+          tX: '16.5',
+          tY: '24.0',
+          tZ: '180'
+        }
+      };
+
+      const BALLISTICS = {
+        mbt: {
+          vel: 1680,
+          drag: 0.04,
+          unit: 'METERS',
+          calc: (slant, dz) => slant + (dz > 0 ? dz * 0.35 : dz * 0.15)
+        },
+        arty: {
+          vel: 640,
+          drag: 0.18,
+          unit: 'METERS',
+          calc: (slant, dz) => slant + (dz * 1.15)
+        },
+        mortar: {
+          vel: 240,
+          drag: 0.28,
+          unit: 'MILS',
+          calc: (slant, dz) => {
+            const range = Math.max(100, Math.min(2800, slant + dz));
+            return Math.max(800, Math.min(1550, 1600 - (range * 0.32)));
+          }
+        }
+      };
+
+      // Selectors
+      const sightDisplay = document.getElementById('sightDisplay');
+      const azimuthDisplay = document.getElementById('azimuthDisplay');
+      const unitTag = document.getElementById('unitTag');
+      const quadrantTag = document.getElementById('quadrantTag');
+      const elevBias = document.getElementById('elevBias');
+      const altOutput = document.getElementById('altOutput');
+      const tofDisplay = document.getElementById('tofDisplay');
+      const groundDistDisplay = document.getElementById('groundDistDisplay');
+      const slantDistDisplay = document.getElementById('slantDistDisplay');
+      const deltaZDisplay = document.getElementById('deltaZDisplay');
+      const gridCountDisplay = document.getElementById('gridCountDisplay');
+      const deltaSummary = document.getElementById('deltaSummary');
+      const chips = document.querySelectorAll('.chip');
+      const ordTabs = document.querySelectorAll('.tab-btn');
+      const unitBtn = document.getElementById('unitBtn');
+      const wakeBtn = document.getElementById('wakeBtn');
+      const swapBtn = document.getElementById('swapBtn');
+      const toast = document.getElementById('toast');
+
+      // Modal Radar Selectors
+      const radarModal = document.getElementById('radarModal');
+      const openRadarBtn = document.getElementById('openRadarBtn');
+      const closeRadarBtn = document.getElementById('closeRadarBtn');
+      const radarCanvas = document.getElementById('radarCanvas');
+      const modalRng = document.getElementById('modalRng');
+      const modalAzi = document.getElementById('modalAzi');
+      const modalRingScale = document.getElementById('modalRingScale');
+      const ctx = radarCanvas.getContext('2d');
+
+      function haptic(ms = 15) {
+        if ('vibrate' in navigator) {
+          try { navigator.vibrate(ms); } catch (e) {}
+        }
+      }
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1600);
+      }
+
+      function saveStorage() {
+        try {
+          localStorage.setItem('wardogs_fcu_data', JSON.stringify({
+            fX: state.coords.fX,
+            fY: state.coords.fY,
+            fZ: state.coords.fZ
+          }));
+        } catch (e) {}
+      }
+
+      function loadStorage() {
+        try {
+          const raw = localStorage.getItem('wardogs_fcu_data');
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data.fX !== undefined) state.coords.fX = data.fX;
+            if (data.fY !== undefined) state.coords.fY = data.fY;
+            if (data.fZ !== undefined) state.coords.fZ = data.fZ;
+          }
+        } catch (e) {}
+      }
+
+      function calculate() {
+        const scale = state.isGridMode ? 100 : 1;
+
+        const fX = (parseFloat(state.coords.fX) || 0) * scale;
+        const fY = (parseFloat(state.coords.fY) || 0) * scale;
+        const fZ = parseFloat(state.coords.fZ) || 0;
+
+        const tX = (parseFloat(state.coords.tX) || 0) * scale;
+        const tY = (parseFloat(state.coords.tY) || 0) * scale;
+        const tZ = parseFloat(state.coords.tZ) || 0;
+
+        const dx = tX - fX;
+        const dy = tY - fY;
+        const dz = tZ - fZ;
+
+        // 2D horizontal flat ground distance
+        const flatDist = Math.hypot(dx, dy);
+        // 3D direct line-of-sight
+        const slantDist = Math.hypot(flatDist, dz);
+        // 100m Map Squares
+        const gridSquares = flatDist / 100;
+
+        // Azimuth: X = East, Y = North
+        let rad = Math.atan2(dx, dy);
+        let bearing = rad * (180 / Math.PI);
+        if (bearing < 0) bearing += 360;
+
+        // Quadrant letter
+        const quads = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+        const qIdx = Math.round(bearing / 45);
+        quadrantTag.textContent = quads[qIdx];
+
+        // Ballistics solution
+        const profile = BALLISTICS[state.ord];
+        const dial = Math.max(0, profile.calc(slantDist, dz));
+        const avgVel = profile.vel * (1 - (profile.drag * (slantDist / 1000)));
+        const tof = slantDist / Math.max(avgVel, 100);
+
+        // Update Big HUD
+        if (state.ord === 'mortar') {
+          unitTag.textContent = 'ELEV MILS';
+          sightDisplay.textContent = Math.round(dial);
+          altOutput.textContent = `${Math.round(slantDist)}m LOS`;
+          elevBias.textContent = 'HIGH ARC';
+        } else {
+          unitTag.textContent = 'METERS';
+          sightDisplay.textContent = Math.round(dial);
+          altOutput.textContent = `${((slantDist / 100) * 1.01).toFixed(1)} mils`;
+          elevBias.textContent = dz > 5 ? 'UPHILL +' : (dz < -5 ? 'DOWNHILL -' : 'FLAT LOS');
+        }
+
+        const formattedAzi = `${Math.round(bearing).toString().padStart(3, '0')}°`;
+        azimuthDisplay.textContent = formattedAzi;
+        tofDisplay.textContent = `${tof.toFixed(1)}s`;
+
+        // Telemetry
+        groundDistDisplay.textContent = `${Math.round(flatDist)}m`;
+        slantDistDisplay.textContent = `${Math.round(slantDist)}m`;
+        deltaZDisplay.textContent = `${dz >= 0 ? '+' : ''}${Math.round(dz)}m`;
+        gridCountDisplay.textContent = `${gridSquares.toFixed(1)} sq`;
+
+        // Delta Summary
+        const dXUnits = (tX - fX) / scale;
+        const dYUnits = (tY - fY) / scale;
+        deltaSummary.textContent = `ΔX: ${dXUnits.toFixed(1)} | ΔY: ${dYUnits.toFixed(1)}`;
+
+        // Modal Header/Footer data
+        modalRng.textContent = `${Math.round(flatDist)} m`;
+        modalAzi.textContent = formattedAzi;
+
+        if (radarModal.classList.contains('open')) {
+          renderRadar(flatDist, dx, dy, bearing);
+        }
+      }
+
+      function updateChips() {
+        chips.forEach(c => {
+          const id = c.dataset.id;
+          c.querySelector('.chip-num').textContent = state.coords[id];
+          c.classList.toggle('active', id === state.activeField);
+        });
+      }
+
+      function advanceField() {
+        const order = ['fX', 'fY', 'fZ', 'tX', 'tY', 'tZ'];
+        const idx = order.indexOf(state.activeField);
+        state.activeField = order[(idx + 1) % order.length];
+        updateChips();
+      }
+
+      function handleKey(k) {
+        haptic(12);
+        let cur = state.coords[state.activeField].toString();
+
+        if (k === 'CLR') {
+          cur = '0';
+        } else if (k === 'BKSP') {
+          // Erases only the last character entered
+          cur = cur.length > 1 ? cur.slice(0, -1) : '0';
+        } else if (k === 'NEG') {
+          cur = cur.startsWith('-') ? cur.substring(1) : (cur !== '0' ? '-' + cur : '0');
+        } else if (k === '.') {
+          if (!cur.includes('.')) cur += '.';
+        } else if (k === 'NEXT') {
+          advanceField();
+          return;
+        } else {
+          cur = cur === '0' ? k : cur + k;
+        }
+
+        state.coords[state.activeField] = cur;
+        updateChips();
+        calculate();
+
+        if (state.activeField.startsWith('f')) saveStorage();
+      }
+
+      function renderRadar(distMeters, dx, dy, bearing) {
+        const w = radarCanvas.width;
+        const h = radarCanvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const maxRadius = cx - 18;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Determine dynamic scale so target always sits cleanly within view
+        let ringMeters = 250;
+        if (distMeters > 3000) ringMeters = 1000;
+        else if (distMeters > 1500) ringMeters = 500;
+        else if (distMeters > 750) ringMeters = 250;
+        else ringMeters = 100;
+
+        modalRingScale.textContent = `${ringMeters}m / ring`;
+        const totalRings = 4;
+        const maxRangeM = ringMeters * totalRings;
+        const pxPerMeter = maxRadius / maxRangeM;
+
+        // Draw background concentric distance rings
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= totalRings; i++) {
+          const r = (i * ringMeters) * pxPerMeter;
+          ctx.strokeStyle = i === totalRings ? '#1f5e35' : '#0d321c';
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Ring label
+          ctx.fillStyle = '#1c723f';
+          ctx.font = '9px monospace';
+          ctx.fillText(`${i * ringMeters}m`, cx + 4, cy - r + 11);
+        }
+
+        // Crosshairs / Bearing Lines
+        ctx.strokeStyle = '#0e381f';
+        ctx.beginPath();
+        ctx.moveTo(cx, 16); ctx.lineTo(cx, h - 16);
+        ctx.moveTo(16, cy); ctx.lineTo(w - 16, cy);
+        ctx.stroke();
+
+        // Compass Cardinal Text
+        ctx.font = 'bold 10px monospace';
+        ctx.fillStyle = '#2ce072';
+        ctx.fillText('N', cx - 4, 14);
+        ctx.fillText('S', cx - 3, h - 5);
+        ctx.fillText('E', w - 13, cy + 3);
+        ctx.fillText('W', 4, cy + 3);
+
+        // Hull Origin (Center)
+        ctx.fillStyle = '#2ce072';
+        ctx.shadowColor = '#2ce072';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Target Plot Position
+        const targetPxX = cx + (dx * pxPerMeter);
+        const targetPxY = cy - (dy * pxPerMeter); // Canvas Y is inverted relative to North
+
+        // Vector line from Hull to Target
+        ctx.strokeStyle = 'rgba(255, 177, 0, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(targetPxX, targetPxY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Target Point & Crosshair
+        ctx.fillStyle = '#ffb100';
+        ctx.shadowColor = '#ffb100';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(targetPxX, targetPxY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Target Reticle Box
+        ctx.strokeStyle = '#ffb100';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(targetPxX - 10, targetPxY - 10, 20, 20);
+
+        // Target Tag Text
+        ctx.font = 'bold 10px monospace';
+        ctx.fillStyle = '#ffb100';
+        ctx.fillText(`TGT: ${Math.round(distMeters)}m`, targetPxX + 13, targetPxY - 2);
+        ctx.fillText(`${Math.round(bearing).toString().padStart(3, '0')}°`, targetPxX + 13, targetPxY + 10);
+      }
+
+      // Tap-to-plot directly on radar canvas
+      function handleCanvasTap(e) {
+        haptic(18);
+        const rect = radarCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const clickX = (clientX - rect.left) * (radarCanvas.width / rect.width);
+        const clickY = (clientY - rect.top) * (radarCanvas.height / rect.height);
+
+        const cx = radarCanvas.width / 2;
+        const cy = radarCanvas.height / 2;
+        const maxRadius = cx - 18;
+
+        const scale = state.isGridMode ? 100 : 1;
+        const fX = (parseFloat(state.coords.fX) || 0) * scale;
+        const fY = (parseFloat(state.coords.fY) || 0) * scale;
+
+        const currentFlatDist = Math.hypot((parseFloat(state.coords.tX) || 0) * scale - fX, (parseFloat(state.coords.tY) || 0) * scale - fY);
+
+        let ringMeters = 250;
+        if (currentFlatDist > 3000) ringMeters = 1000;
+        else if (currentFlatDist > 1500) ringMeters = 500;
+        else if (currentFlatDist > 750) ringMeters = 250;
+        else ringMeters = 100;
+
+        const maxRangeM = ringMeters * 4;
+        const pxPerMeter = maxRadius / maxRangeM;
+
+        const offsetPxX = clickX - cx;
+        const offsetPxY = cy - clickY; // Invert to North
+
+        const newTargetMetersX = fX + (offsetPxX / pxPerMeter);
+        const newTargetMetersY = fY + (offsetPxY / pxPerMeter);
+
+        const newTargetUnitX = newTargetMetersX / scale;
+        const newTargetUnitY = newTargetMetersY / scale;
+
+        state.coords.tX = (Math.round(newTargetUnitX * 10) / 10).toFixed(1);
+        state.coords.tY = (Math.round(newTargetUnitY * 10) / 10).toFixed(1);
+
+        updateChips();
+        calculate();
+        showToast('TARGET UPDATED VIA RADAR');
+      }
+
+      radarCanvas.addEventListener('click', handleCanvasTap);
+      radarCanvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleCanvasTap(e);
+      }, { passive: false });
+
+      // Open / Close Radar Modal
+      openRadarBtn.addEventListener('click', () => {
+        haptic(14);
+        radarModal.classList.add('open');
+        calculate();
+      });
+
+      closeRadarBtn.addEventListener('click', () => {
+        haptic(14);
+        radarModal.classList.remove('open');
+      });
+
+      // Chip selector
+      chips.forEach(c => {
+        c.addEventListener('click', () => {
+          haptic(8);
+          state.activeField = c.dataset.id;
+          updateChips();
+        });
+      });
+
+      // Numpad key clicks
+      document.querySelectorAll('.key[data-k]').forEach(b => {
+        b.addEventListener('click', () => handleKey(b.dataset.k));
+      });
+
+      // Walking fire nudges
+      document.querySelectorAll('.nudge-btn[data-n]').forEach(b => {
+        b.addEventListener('click', () => {
+          haptic(14);
+          let val = parseFloat(state.coords[state.activeField]) || 0;
+          val += parseFloat(b.dataset.n);
+          state.coords[state.activeField] = (Math.round(val * 10) / 10).toString();
+          updateChips();
+          calculate();
+          if (state.activeField.startsWith('f')) saveStorage();
+        });
+      });
+
+      // Swap button
+      swapBtn.addEventListener('click', () => {
+        haptic(18);
+        const tmpX = state.coords.fX;
+        const tmpY = state.coords.fY;
+        const tmpZ = state.coords.fZ;
+        state.coords.fX = state.coords.tX;
+        state.coords.fY = state.coords.tY;
+        state.coords.fZ = state.coords.tZ;
+        state.coords.tX = tmpX;
+        state.coords.tY = tmpY;
+        state.coords.tZ = tmpZ;
+        updateChips();
+        calculate();
+        saveStorage();
+        showToast('POSITIONS SWAPPED');
+      });
+
+      // Ordnance selector tabs
+      ordTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          haptic(12);
+          ordTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          state.ord = tab.dataset.ord;
+          calculate();
+        });
+      });
+
+      // Grid unit switch (100m vs 1.0m)
+      unitBtn.addEventListener('click', () => {
+        haptic(12);
+        state.isGridMode = !state.isGridMode;
+        unitBtn.textContent = state.isGridMode ? 'GRID: 100M' : 'SCALE: 1.0M';
+        unitBtn.classList.toggle('active', state.isGridMode);
+        calculate();
+      });
+
+      // Screen Wake Lock API
+      wakeBtn.addEventListener('click', async () => {
+        haptic(18);
+        if (!('wakeLock' in navigator)) {
+          showToast('WAKE LOCK UNSUPPORTED');
+          return;
+        }
+        try {
+          if (state.wakeSentinel) {
+            await state.wakeSentinel.release();
+            state.wakeSentinel = null;
+            wakeBtn.textContent = 'AWAKE: OFF';
+            wakeBtn.classList.remove('active');
+            showToast('SCREEN SLEEP RESTORED');
+          } else {
+            state.wakeSentinel = await navigator.wakeLock.request('screen');
+            wakeBtn.textContent = 'AWAKE: ON';
+            wakeBtn.classList.add('active');
+            showToast('DISPLAY KEPT AWAKE');
+            state.wakeSentinel.addEventListener('release', () => {
+              state.wakeSentinel = null;
+              wakeBtn.textContent = 'AWAKE: OFF';
+              wakeBtn.classList.remove('active');
+            });
+          }
+        } catch (e) {
+          showToast('LOCK ERROR');
+        }
+      });
+
+      loadStorage();
+      updateChips();
+      calculate();
+    })();
+  </script>
+</body>
+</html>
