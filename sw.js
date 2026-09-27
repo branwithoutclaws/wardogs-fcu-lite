@@ -1,11 +1,10 @@
 const CACHE_NAME = 'wardogs-fcu-v1';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './sw.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  '/wardogs-fcu-lite/',
+  '/wardogs-fcu-lite/index.html',
+  '/wardogs-fcu-lite/manifest.json',
+  '/wardogs-fcu-lite/icons/icon-192.png',
+  '/wardogs-fcu-lite/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,6 +33,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request);
-    }).catch(() => caches.match('./index.html'))
+    }).catch(() => caches.match('/wardogs-fcu-lite/index.html'))
   );
 });
